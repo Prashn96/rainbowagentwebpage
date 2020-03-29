@@ -1,0 +1,19 @@
+{
+  "name": "myFirstRainbowProject",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "0.19.2",
+    "rainbow-web-sdk": "^1.68.0"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.1"
+  }
+}
