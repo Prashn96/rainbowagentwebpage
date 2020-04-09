@@ -8,17 +8,25 @@ const chatArea = document.getElementById("chatarea");
 const sendArea = document.getElementById("sendchatarea");
 const sendMessageBtn = document.getElementsByClassName("sendbutton")[0];
 const categoryDropdown = document.getElementsByClassName("dropdownlist")[0];
+const agentDropdown = document.getElementsByClassName('dropdownlistagent')[0];
 const requestButton = document.getElementsByClassName("requestbutton")[0];
-const agentStatusText = document.getElementsByClassName("agent_status")[0];
+const customerStatusText = document.getElementsByClassName("customer_status")[0];
+const quitBtn = document.getElementsByClassName('quitbutton')[0];
 let agent_id;
 let agent_name;
 let guest_id;
 let convo;
 let message;
 
+const agentMaps = {
+  'Jason2 Chow2': '5e7a32e50beb4e6ae713daaf',
+  'Shaozuo Zhang': '5e78cfb00beb4e6ae713d999',
+}
+
 const onReady = async () => {
   sendMessageBtn.addEventListener("click", sendClick, false);
   requestButton.addEventListener("click", requestClick, false);
+  quitBtn.addEventListener('click', closeConvoNetwork, false);
 
   var myRainbowLogin = "jason_chow@mymail.sutd.edu.sg"; // Replace by your login
   var myRainbowPassword = "Rainbow1!"; // Replace by your password
@@ -30,28 +38,6 @@ const onReady = async () => {
     myRainbowPassword
   );
   console.log(rainbowSDK.admin);
-  // Successfully signed to Rainbow and the SDK is started completely. Rainbow data can be retrieved.
-  /*rainbowSDK.admin.createAnonymousGuestUser(timeToLive).then((guest_user)=> {
-              console.log(guest_user);
-          }).catch(err=>{console.log(err);})*/
-
-  // rainbowSDK.contacts
-  //   .searchById("5e78cfb00beb4e6ae713d999 ")
-  //   .then(add => {
-  //     console.log("searched");
-  //     console.log(add);
-  //     return rainbowSDK.contacts.addToNetwork(add);
-  //   })
-  //   .then(contact => {
-  //     console.log(contact);
-  //     return rainbowSDK.conversations.openConversationForContact(contact);
-  //   })
-  //   .then(conv => {
-  //     console.log(conv);
-  //     return rainbowSDK.im.sendMessageToConversation(conv, "Test2");
-  //   })
-  //   .then(obj => console.log(obj))
-  //   .catch(err => {});
 };
 
 var onLoaded = function onLoaded() {
@@ -80,16 +66,22 @@ var onLoaded = function onLoaded() {
 };
 
 const sendClick = () => {
-  // chatArea.innerHTML += `You: \n ${sendArea.value} \n\n`;
-  // sendArea.value = "";
+  agentMessage(sendArea.value);
 };
 
 const requestClick = () => {
+  pollForCustomer(agentDropdown.value);
+};
+
+const updateCustomerStatusText = (customer) => {
+  customerStatusText.innerHTML += customer;
+};
+
+const pollForCustomer = (agentId) => {
   // TODO: Add http call to request for agent
-  console.log("Test axios");
 
   const apiUrl =
-    "http://localhost:3030/agent/checkforrequest/5e7a32e50beb4e6ae713daaf";
+    `http://localhost:3030/common/reqstatus?agentId=${agentId}`;
   const body = {};
   // axios
   //   .get(apiUrl)
@@ -112,6 +104,7 @@ const requestClick = () => {
       console.log((name = obj.suppReq.name));
       console.log((agent_id = obj.suppReq.agent_id));
       console.log((agent_name = obj.suppReq.agent_name));
+      updateCustomerStatusText(name);
       rainbowSDK.contacts
         .searchById(guest_id)
         .then(contact => {
@@ -125,10 +118,8 @@ const requestClick = () => {
         })
         .then(obj => {
           console.log(obj);
-          document.addEventListener(
-            rainbowSDK.conversations.RAINBOW_ONCONVERSATIONCHANGED,
-            message => {
-              agentMessage(message);
+          document.addEventListener(rainbowSDK.im.RAINBOW_ONNEWIMMESSAGERECEIVED, (msg, conv, cc) => {
+              clientMessage(extractMessage(msg));
             }
           );
         })
@@ -136,7 +127,7 @@ const requestClick = () => {
     }
     if (this.readyState == 4 && this.status >= 400) {
       setTimeout(() => {
-        requestClick();
+        pollForCustomer();
       }, 5000);
     }
   };
@@ -144,9 +135,35 @@ const requestClick = () => {
   xhttp.send();
 };
 
-const agentMessage = message => {
+const closeConvoNetwork = (reqId) => {
+  const apiUrl = `http://localhost:3030/common/closereq/${reqId}`;
+  clearInterval(checkIntervalTimer);
+  fetch(apiUrl)
+    .then((response) => response.text())
+    .then((htmlText) => {
+      console.log(htmlText);
+    })
+    .catch(console.error)
+    .finally(() => closeConvo());
+};
+
+const closeConvo = () => {
+  // TODO: Close convo
+  console.log('Closing convo');
+};
+
+
+const clientMessage = (message) => {
+  chatArea.innerHTML += `Client: \n ${message} \n\n`;
+};
+
+const agentMessage = (message) => {
   chatArea.innerHTML += `Agent: \n ${message} \n\n`;
 };
+
+const extractMessage = (msg) => {
+  return msg.detail.message.data;
+}
 
 document.addEventListener(rainbowSDK.RAINBOW_ONREADY, onReady);
 
