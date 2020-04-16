@@ -66,7 +66,10 @@ var onLoaded = function onLoaded() {
 };
 
 const sendClick = () => {
-  agentMessage(sendArea.value);
+  const toSend = sendArea.value;
+  sendArea.value = '';
+  agentMessage(toSend);
+  rainbowSDK.im.sendMessageToConversation(convo, toSend);
 };
 
 const requestClick = () => {
@@ -81,7 +84,7 @@ const pollForCustomer = (agentId) => {
   // TODO: Add http call to request for agent
 
   const apiUrl =
-    `http://localhost:3030/common/reqstatus?agentId=${agentId}`;
+    `http://13.76.87.194:3030/common/reqstatus?agentId=${agentId}`;
   const body = {};
   // axios
   //   .get(apiUrl)
@@ -100,10 +103,10 @@ const pollForCustomer = (agentId) => {
       // Typical action to be performed when the document is ready:
       console.log(xhttp.response);
       const obj = JSON.parse(xhttp.response);
-      console.log((guest_id = obj.suppReq.guest_id));
-      console.log((name = obj.suppReq.name));
-      console.log((agent_id = obj.suppReq.agent_id));
-      console.log((agent_name = obj.suppReq.agent_name));
+      console.log((guest_id = obj.support_req.guestId));
+      console.log((name = obj.support_req.name));
+      console.log((agent_id = obj.support_req.agentId));
+      console.log((agent_name = obj.support_req.agentName));
       updateCustomerStatusText(name);
       rainbowSDK.contacts
         .searchById(guest_id)
@@ -114,7 +117,7 @@ const pollForCustomer = (agentId) => {
         .then(conv => {
           convo = conv;
           console.log(conv);
-          return rainbowSDK.im.sendMessageToConversation(conv, "Test2");
+          return rainbowSDK.im.sendMessageToConversation(conv, "Agent has connected");
         })
         .then(obj => {
           console.log(obj);
@@ -136,7 +139,7 @@ const pollForCustomer = (agentId) => {
 };
 
 const closeConvoNetwork = (reqId) => {
-  const apiUrl = `http://localhost:3030/common/closereq/${reqId}`;
+  const apiUrl = `http://13.76.87.194:3030/common/closereq/${reqId}`;
   clearInterval(checkIntervalTimer);
   fetch(apiUrl)
     .then((response) => response.text())
