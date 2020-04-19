@@ -23,23 +23,19 @@
         <input type="text" name="userid" placeholder="Enter Username" />
         <p>Password</p>
         <input type="password" name="pswrd" placeholder="Enter Password" />
-
         <input type="button" name="bttn" onclick="check(this.form)" value="Login"/>
             <input type="reset" value="Cancel"/>
         </form>
         <script language="javascript">
             function check(form) { 
                 if(form.userid.value == "jason_chow@mymail.sutd.edu.sg" && form.pswrd.value == "Rainbow1!" || form.userid.value == "zsz2628836781@gmail.com" && form.pswrd.value == "SUTDzsz19991226") {
-                    window.open('index2.html')    
-                    
+                    window.open('index2.html')       
                 }
                 else {
                     alert("Error Password or Username")
                 }
-            }
-            
-        </script>
-        
+            }    
+        </script> 
       </form>
       <h3>Who are you</h3>
     <div class="dropdown">
