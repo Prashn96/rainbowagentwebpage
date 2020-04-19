@@ -1,1 +1,82 @@
+body {
+  background: url(sg.jpg) no-repeat;
+  background-size: cover;
+}
+.whole h1 {
+  color: white;
+  border-bottom: 4px solid black;
+  margin-bottom: 50px;
+}
+
+.whole h2 {
+  color: white;
+}
+.whole h3 {
+  color: white;
+}
+
+.textbox {
+  width: 100%;
+  overflow: hidden;
+  font-size: 20px;
+  padding: 8px 0;
+  margin: 8px 0;
+}
+
+.textbox textarea {
+  color: white;
+  background: none;
+  border: 6px solid black;
+}
+
+.sendbutton {
+  background: none;
+  border: 4px solid black;
+  color: white;
+  padding: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  margin: 12 px 0;
+}
+.agentdropdown {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.availagent {
+  color: white;
+  background: none;
+  border: 4px solid black;
+  padding: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  margin: 12 px 0;
+}
+.agentstatus h3 {
+  color: white;
+}
+.dropdown {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.dropdownlist {
+  color: white;
+  background: none;
+  border: 4px solid black;
+  padding: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  margin: 12 px 0;
+}
+
+.requestbutton {
+  color: white;
+  background: none;
+  border: 4px solid black;
+  padding: 5px;
+  font-size: 18px;
+  cursor: pointer;
+  margin: 12 px 0;
+}
 
