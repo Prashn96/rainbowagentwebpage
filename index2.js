@@ -24,8 +24,11 @@ let message;
 let customerFound = false;
 
 const agentMaps = {
-  "Jason2 Chow2": "5e7a32e50beb4e6ae713daaf",
-  "Shaozuo Zhang": "5e78cfb00beb4e6ae713d999",
+  "jason_chow@mymail.sutd.edu.sg": ["Jason2 Chow2", "5e7a32e50beb4e6ae713daaf"],
+  "2628836781@qq.com": ["Shaozuo Zhang", "5e78cfb00beb4e6ae713d999"],
+  "informationman1@rainbow.com": ["Information Man1", "5e9dc3949cff6b7279a93cb6"],
+  "salesman1@rainbow.com": ["Sales Man1", "5e9dc3639cff6b7279a93c9b"],
+  "salesman2@rainbow.com": ["Sales Man2", "5e9dc36f9cff6b7279a93ca4"],
 };
 
 const onReady = async () => {
@@ -34,15 +37,18 @@ const onReady = async () => {
   requestButton.addEventListener("click", requestClick, false);
   quitBtn.addEventListener("click", closeConvoNetwork, false);
   availList.addEventListener("change", checkAgentStatus, false);
+  
+  const email = localStorage.getItem("email");
+  const password = localStorage.getItem("password");
+  agent_name = agentMaps[email][0];
+  agent_id = agentMaps[email][1];
 
-  var myRainbowLogin = "jason_chow@mymail.sutd.edu.sg"; // Replace by your login
-  var myRainbowPassword = "Rainbow1!"; // Replace by your password
   var timeToLive = 600;
 
   // The SDK for Web is ready to be used, so you can sign in
   let account = await rainbowSDK.connection.signin(
-    myRainbowLogin,
-    myRainbowPassword
+    email,
+    password
   );
   console.log(rainbowSDK.admin);
 };
@@ -60,9 +66,7 @@ var onLoaded = function onLoaded() {
       
       //calls changeData() function once agents login(agent availability)
       //calls pollForCustomer() function once agent login
-      const agentName = localStorage.getItem("agentName");
-      console.log("agentName = " + agentName);
-      agent_id = agentMaps[agentName];
+
       setTimeout(() => {
         checkAgentStatus();
       }, 10000);
