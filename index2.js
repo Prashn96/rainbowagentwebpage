@@ -16,11 +16,12 @@ const customerStatusText = document.getElementsByClassName(
   "customer_status"
 )[0];
 const quitBtn = document.getElementsByClassName("quitbutton")[0];
-let agentId;
-let agentName;
+let agent_id;
+let agent_name;
 let guest_id;
 let convo;
 let message;
+let customerFound = false;
 
 const agentMaps = {
   "Jason2 Chow2": "5e7a32e50beb4e6ae713daaf",
@@ -32,7 +33,7 @@ const onReady = async () => {
   // sendMessageBtn.addEventListener("click", sendClick, false);
   requestButton.addEventListener("click", requestClick, false);
   quitBtn.addEventListener("click", closeConvoNetwork, false);
-  availList.addEventListener("change", changeData, false);
+  availList.addEventListener("change", checkAgentStatus, false);
 
   var myRainbowLogin = "jason_chow@mymail.sutd.edu.sg"; // Replace by your login
   var myRainbowPassword = "Rainbow1!"; // Replace by your password
@@ -56,13 +57,16 @@ var onLoaded = function onLoaded() {
     )
     .then(() => {
       console.log("[Hello World] :: Rainbow SDK is initialized!");
-
+      
       //calls changeData() function once agents login(agent availability)
-      changeData();
       //calls pollForCustomer() function once agent login
-      agentId = localStorage.getItem("agentId");
-      pollForCustomer(agentId);
-
+      const agentName = localStorage.getItem("agentName");
+      console.log("agentName = " + agentName);
+      agent_id = agentMaps[agentName];
+      // availList.onchange = () => pollForCustomer(agentId);
+      setTimeout(() => {
+        pollForCustomer(agent_id);
+      }, 10000);
       /*
             rainbowSDK.contacts.searchById(id)
             .then((contact) => {
@@ -81,15 +85,17 @@ var onLoaded = function onLoaded() {
 //   changeData();
 //   pollForCustomer();
 // };
-const changeData = () => {
+
+const checkAgentStatus = () => {
   if (availList.value == "available") {
-    alert("Agent is available!");
     console.log("Agent available");
+    return true;
   } else if (availList.value == "busy") {
-    alert("Agent is busy!");
     console.log("Agent busy");
+    return false;
   } else {
     console.log("Finding agent");
+    return false;
   }
 };
 const sendClick = () => {
@@ -100,7 +106,7 @@ const sendClick = () => {
 };
 
 const requestClick = () => {
-  pollForCustomer(agentId);
+  pollForCustomer(agent_id);
 };
 
 const updateCustomerStatusText = (customer) => {
@@ -109,6 +115,7 @@ const updateCustomerStatusText = (customer) => {
 
 
 const pollForCustomer = (agentId) => {
+  if (!checkAgentStatus() || customerFound) return;
   // TODO: Add http call to request for agent
 
   const apiUrl = `http://13.76.87.194:3030/common/reqstatus?agentId=${agentId}`;
@@ -145,6 +152,7 @@ const pollForCustomer = (agentId) => {
       updateCustomerStatusText(name);
       //enable send message button only when connecting/connected
       sendMessageBtn.addEventListener("click", sendClick, false);
+      console.log("event listener added for btn");
       rainbowSDK.contacts
         .searchById(guest_id)
         .then((contact) => {
@@ -152,6 +160,7 @@ const pollForCustomer = (agentId) => {
           return rainbowSDK.conversations.openConversationForContact(contact);
         })
         .then((conv) => {
+          customerFound = true;
           convo = conv;
           console.log(conv);
           return rainbowSDK.im.sendMessageToConversation(
@@ -188,6 +197,7 @@ const pollForCustomer = (agentId) => {
 //   changeData();
 //   pollForCustomer();
 // };
+}
 
 const closeConvoNetwork = (reqId) => {
   const apiUrl = `http://13.76.87.194:3030/common/closereq/${reqId}`;

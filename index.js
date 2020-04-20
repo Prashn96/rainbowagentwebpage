@@ -11,16 +11,14 @@ function validate() {
   password = localStorage.getItem("password");
 
   if (username == "jason_chow@mymail.sutd.edu.sg" && password == "Rainbow1!") {
-    localStorage.setItem("agentId", "Jason2 Chow2");
-    console.log("valid");
-    window.open("index2.html");
+    localStorage.setItem("agentName", "Jason2 Chow2");
+    window.location.href = 'index2.html';
   } else if (
     username == "zsz2628836781@gmail.com" &&
     password == "SUTDzsz19991226"
   ) {
-    localStorage.setItem("agentId", "Shaozuo Zhang");
-    console.log("valid");
-    window.open("index2.html");
+    localStorage.setItem("agentName", "Shaozuo Zhang");
+    window.location.href = 'index2.html';
   } else {
     alert("Incorrect Username/Password!");
   }
