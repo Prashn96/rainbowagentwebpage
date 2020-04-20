@@ -63,9 +63,8 @@ var onLoaded = function onLoaded() {
       const agentName = localStorage.getItem("agentName");
       console.log("agentName = " + agentName);
       agent_id = agentMaps[agentName];
-      // availList.onchange = () => pollForCustomer(agentId);
       setTimeout(() => {
-        pollForCustomer(agent_id);
+        checkAgentStatus();
       }, 10000);
       /*
             rainbowSDK.contacts.searchById(id)
@@ -89,6 +88,7 @@ var onLoaded = function onLoaded() {
 const checkAgentStatus = () => {
   if (availList.value == "available") {
     console.log("Agent available");
+    pollForCustomer(agent_id);
     return true;
   } else if (availList.value == "busy") {
     console.log("Agent busy");
@@ -115,7 +115,8 @@ const updateCustomerStatusText = (customer) => {
 
 
 const pollForCustomer = (agentId) => {
-  if (!checkAgentStatus() || customerFound) return;
+  if (customerFound) return;
+  customerFound = true;
   // TODO: Add http call to request for agent
 
   const apiUrl = `http://13.76.87.194:3030/common/reqstatus?agentId=${agentId}`;
@@ -140,6 +141,7 @@ const pollForCustomer = (agentId) => {
       const obj = JSON.parse(xhttp.response);
       if (!obj.active) {
         console.log("NOT ACTIVE. Continue to poll");
+        customerFound = false;
         setTimeout(() => {
           pollForCustomer();
         }, 5000);
@@ -160,7 +162,6 @@ const pollForCustomer = (agentId) => {
           return rainbowSDK.conversations.openConversationForContact(contact);
         })
         .then((conv) => {
-          customerFound = true;
           convo = conv;
           console.log(conv);
           return rainbowSDK.im.sendMessageToConversation(
@@ -178,11 +179,14 @@ const pollForCustomer = (agentId) => {
             }
           );
         })
-        .catch((err) => {});
+        .catch((err) => {
+          customerFound = false;
+        });
     }
 
     if (this.readyState == 4 && this.status >= 400) {
       console.log("Error requesting for support req status");
+      customerFound = false;
       //enable send message button only when connecting/connected
 
       // setTimeout(() => {
