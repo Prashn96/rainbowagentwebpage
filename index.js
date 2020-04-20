@@ -124,11 +124,18 @@ const pollForCustomer = (agentId) => {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function () {
     console.log("wow");
-    if (this.active == true && this.status == 200) {
+    if (this.readyState == 4 && this.status == 200) {
       // Typical action to be performed when the document is ready:
       console.log("IS ACTIVE1");
       console.log(xhttp.response);
       const obj = JSON.parse(xhttp.response);
+      if (!obj.active) {
+        console.log("NOT ACTIVE. Continue to poll");
+        setTimeout(() => {
+          pollForCustomer();
+        }, 5000);
+        return;
+      }
       console.log((guest_id = obj.support_req.guestId));
       console.log((name = obj.support_req.name));
       console.log((agent_id = obj.support_req.agentId));
@@ -152,6 +159,7 @@ const pollForCustomer = (agentId) => {
         })
         .then((obj) => {
           console.log(obj);
+          sendMessageBtn.addEventListener("click", sendClick, false);
           document.addEventListener(
             rainbowSDK.im.RAINBOW_ONNEWIMMESSAGERECEIVED,
             (msg, conv, cc) => {
@@ -162,19 +170,13 @@ const pollForCustomer = (agentId) => {
         .catch((err) => {});
     }
 
-    if (this.active == true && this.status >= 400) {
-      console.log("IS ACTIVE2");
+    if (this.readyState == 4 && this.status >= 400) {
+      console.log("Error requesting for support req status");
       //enable send message button only when connecting/connected
-      sendMessageBtn.addEventListener("click", sendClick, false);
 
       // setTimeout(() => {
       //   pollForCustomer();
       // }, 5000);
-    } else {
-      console.log("NOT ACTIVE");
-      setTimeout(() => {
-        pollForCustomer();
-      }, 5000);
     }
   };
 
