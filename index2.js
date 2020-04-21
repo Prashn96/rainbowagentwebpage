@@ -10,7 +10,6 @@ const sendArea = document.getElementById("sendchatarea");
 const sendMessageBtn = document.getElementsByClassName("sendbutton")[0];
 const categoryDropdown = document.getElementsByClassName("dropdownlist")[0];
 const agentDropdown = document.getElementsByClassName("dropdownlistagent")[0];
-const requestButton = document.getElementsByClassName("requestbutton")[0];
 var availList = document.getElementsByClassName("availagent")[0];
 const customerStatusText = document.getElementsByClassName(
   "customer_status"
@@ -22,7 +21,8 @@ let guest_id;
 let convo;
 let message;
 let customerFound = false;
-let pollCustomerTimeout
+let pollCustomerInterval
+let msgListenerAdded = false;
 
 const agentMaps = {
   "jason_chow@mymail.sutd.edu.sg": ["Jason2 Chow2", "5e7a32e50beb4e6ae713daaf"],
@@ -35,7 +35,6 @@ const agentMaps = {
 const onReady = async () => {
   // loginBtn.addEventListener("click", loginClick, false);
   // sendMessageBtn.addEventListener("click", sendClick, false);
-  requestButton.addEventListener("click", requestClick, false);
   quitBtn.addEventListener("click", closeConvoNetwork, false);
   availList.addEventListener("change", checkAgentStatus, false);
   
@@ -93,11 +92,13 @@ var onLoaded = function onLoaded() {
 const checkAgentStatus = () => {
   if (availList.value == "available") {
     console.log("Agent available");
-    pollForCustomer();
+    if (pollCustomerInterval) clearInterval(pollCustomerInterval);
+    pollCustomerInterval = setInterval(() => pollForCustomer(), 5000);
     changeStatus(true);
     return true;
   } else if (availList.value == "busy") {
     console.log("Agent busy");
+    if (pollCustomerInterval) clearInterval(pollCustomerInterval);
     changeStatus(false);
     return false;
   } else {
@@ -145,8 +146,6 @@ const updateCustomerStatusText = (customer) => {
 
 
 const pollForCustomer = () => {
-  if (customerFound) return;
-  customerFound = true;
   console.log("Polling customer");
   // TODO: Add http call to request for agent
 
@@ -171,15 +170,22 @@ const pollForCustomer = () => {
       console.log("IS ACTIVE1");
       console.log(xhttp.response);
       const obj = JSON.parse(xhttp.response);
-      if (!obj.active) {
+      if (!obj.active && !customerFound) {
         console.log("NOT ACTIVE. Continue to poll");
         customerFound = false;
-        clearTimeout(pollCustomerTimeout);
-        pollCustomerTimeout = setTimeout(() => {
-          pollForCustomer();
-        }, 5000);
         return;
       }
+      else if (!obj.active && customerFound) {
+        console.log("Chat was closed");
+        rainbowSDK.conversations.closeConversation(convo);
+        alert("Client Closed Chat");
+        chatArea.innerHTML = "";
+        customerStatusText.innerHTML = "Customer: ";
+        customerFound = false;
+        return;
+      }
+      if (customerFound === true) return;
+      customerFound = true;
       console.log((guest_id = obj.support_req.guestId));
       console.log((name = obj.support_req.name));
       console.log((agent_id = obj.support_req.agentId));
@@ -205,18 +211,12 @@ const pollForCustomer = () => {
         .then((obj) => {
           console.log(obj);
           sendMessageBtn.addEventListener("click", sendClick, false);
-          document.addEventListener(
-            rainbowSDK.im.RAINBOW_ONNEWIMMESSAGERECEIVED,
-            (msg, conv, cc) => {
-              clientMessage(extractMessage(msg));
-            }
-          );
-          document.addEventListener(rainbowSDK.im.RAINBOW_ONCONVERSATIONREMOVED, (convo) => {
-            pollForCustomer();
-          });
+          if (msgListenerAdded) return;
+          document.addEventListener(rainbowSDK.im.RAINBOW_ONNEWIMMESSAGERECEIVED, imEventListener);
+          msgListenerAdded = true;
         })
         .catch((err) => {
-          customerFound = false;
+          console.error(err);
         });
     }
 
@@ -238,6 +238,10 @@ const pollForCustomer = () => {
 //   pollForCustomer();
 // };
 }
+
+const imEventListener = (msg, conv, cc) => {
+  clientMessage(extractMessage(msg));
+};
 
 const closeConvoNetwork = (reqId) => {
   const apiUrl = `http://13.76.87.194:3030/common/closereq/${reqId}`;
