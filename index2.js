@@ -22,6 +22,7 @@ let guest_id;
 let convo;
 let message;
 let customerFound = false;
+let pollCustomerTimeout
 
 const agentMaps = {
   "jason_chow@mymail.sutd.edu.sg": ["Jason2 Chow2", "5e7a32e50beb4e6ae713daaf"],
@@ -92,16 +93,41 @@ var onLoaded = function onLoaded() {
 const checkAgentStatus = () => {
   if (availList.value == "available") {
     console.log("Agent available");
-    pollForCustomer(agent_id);
+    pollForCustomer();
+    changeStatus(true);
     return true;
   } else if (availList.value == "busy") {
     console.log("Agent busy");
+    changeStatus(false);
     return false;
   } else {
     console.log("Finding agent");
     return false;
   }
 };
+
+const changeStatus = (avail) => {
+  // const apiUrl = 'http://localhost:3030/agent/updateavail';
+  const apiUrl = 'http://13.76.87.194:3030/agent/updateavail';
+  const body = JSON.stringify({
+    agentId: agent_id,
+    avail,
+  });
+  fetch(apiUrl, {
+    method: "POST",
+    body,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+  }).then((response) => {
+    return response.json();
+  })
+  .then((htmlJson) => {
+    console.log(htmlJson);
+  })
+  .catch(console.error);
+}
+
 const sendClick = () => {
   const toSend = sendArea.value;
   sendArea.value = "";
@@ -110,7 +136,7 @@ const sendClick = () => {
 };
 
 const requestClick = () => {
-  pollForCustomer(agent_id);
+  pollForCustomer();
 };
 
 const updateCustomerStatusText = (customer) => {
@@ -118,12 +144,13 @@ const updateCustomerStatusText = (customer) => {
 };
 
 
-const pollForCustomer = (agentId) => {
+const pollForCustomer = () => {
   if (customerFound) return;
   customerFound = true;
   // TODO: Add http call to request for agent
 
   const apiUrl = `http://13.76.87.194:3030/common/reqstatus?agentId=${agentId}`;
+  // const apiUrl = `http://localhost:3030/common/reqstatus?agentId=${agent_id}`;
   const body = {};
   // axios
   //   .get(apiUrl)
@@ -146,7 +173,8 @@ const pollForCustomer = (agentId) => {
       if (!obj.active) {
         console.log("NOT ACTIVE. Continue to poll");
         customerFound = false;
-        setTimeout(() => {
+        clearTimeout(pollCustomerTimeout);
+        pollCustomerTimeout = setTimeout(() => {
           pollForCustomer();
         }, 5000);
         return;
@@ -209,6 +237,7 @@ const pollForCustomer = (agentId) => {
 
 const closeConvoNetwork = (reqId) => {
   const apiUrl = `http://13.76.87.194:3030/common/closereq/${reqId}`;
+  // const apiUrl = `http://localhost:3030/common/closereq/${reqId}`;
   clearInterval(checkIntervalTimer);
   fetch(apiUrl)
     .then((response) => response.text())
