@@ -147,9 +147,10 @@ const updateCustomerStatusText = (customer) => {
 const pollForCustomer = () => {
   if (customerFound) return;
   customerFound = true;
+  console.log("Polling customer");
   // TODO: Add http call to request for agent
 
-  const apiUrl = `http://13.76.87.194:3030/common/reqstatus?agentId=${agentId}`;
+  const apiUrl = `http://13.76.87.194:3030/common/reqstatus?agentId=${agent_id}`;
   // const apiUrl = `http://localhost:3030/common/reqstatus?agentId=${agent_id}`;
   const body = {};
   // axios
@@ -210,6 +211,9 @@ const pollForCustomer = () => {
               clientMessage(extractMessage(msg));
             }
           );
+          document.addEventListener(rainbowSDK.im.RAINBOW_ONCONVERSATIONREMOVED, (convo) => {
+            pollForCustomer();
+          });
         })
         .catch((err) => {
           customerFound = false;
